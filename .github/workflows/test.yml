@@ -24,7 +24,7 @@ jobs:
         uses: gbraad-actions/setup-container-tools@v1
 
       - name: Setup ducttape tool from releases
-        uses: ducttape-infra/ducttape-install-action@v0.8
+        uses: ducttape-infra/ducttape-install-action@v0.9
 
       - name: Build image with ducttape
         id: build-image
@@ -34,9 +34,9 @@ jobs:
           echo "Building image with:"
           echo "  IMAGE_TAG: $IMAGE_TAG"
           echo "  Machinefile: fedora-httpd/Machinefile.httpd"
-          echo "  Base image (-d): fedora-cloud (alias -> HTTPS download -> qcow2)"
+          echo "  Base image (-d): fedora-cloud:44 (registry alias)"
 
-          ducttape build -t "$IMAGE_TAG" -f fedora-httpd/Machinefile.httpd -d fedora-cloud --root-pass password
+          ducttape build -t "$IMAGE_TAG" -f fedora-httpd/Machinefile.httpd -d fedora-cloud:44 --root-pass password
           # Verify the image was created
           echo "=== Listing images after build ==="
           ducttape images
