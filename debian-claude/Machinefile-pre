@@ -1,12 +1,11 @@
 FROM scratch
 
 ARG ROOT_PASSWD
-ARG USER="ubuntu"
 
 USER root
 
 RUN true && if [ -n "${ROOT_PASSWD}" ] ; then \
-        echo "root:${ROOT_PASSWD}" | sudo chpasswd ; \
+        echo "root:${ROOT_PASSWD}" | chpasswd ; \
     fi
 
 RUN echo "PermitRootLogin yes" > /etc/ssh/sshd_config.d/00-machine.conf \

@@ -9,84 +9,22 @@ on:
       - '**'
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout examples
-        uses: actions/checkout@v4
 
-      - name: virtualization support
-        continue-on-error: true
-        uses: gbraad-actions/setup-virtualization@v3
+  run-compile-crc:
+    name: fedora-httpd
+    uses: ./.github/workflows/reusable-action.yml
+    with:
+      runs-on: "ubuntu-latest"
+      arch: amd64
+      actionfile: "fedora-httpd/README.md"
+    secrets: inherit
 
-      - name: Install containers tools (optional)
-        continue-on-error: true
-        uses: gbraad-actions/setup-container-tools@v1
-
-      - name: Setup ducttape tool from releases
-        uses: ducttape-infra/ducttape-install-action@v0.9
-
-      - name: Build image with ducttape
-        id: build-image
-        env:
-          IMAGE_TAG: fedora-httpd
-        run: |
-          echo "Building image with:"
-          echo "  IMAGE_TAG: $IMAGE_TAG"
-          echo "  Machinefile: fedora-httpd/Machinefile.httpd"
-          echo "  Base image (-d): fedora-cloud:44 (registry alias)"
-
-          ducttape build -t "$IMAGE_TAG" -f fedora-httpd/Machinefile.httpd -d fedora-cloud:44 --root-pass password
-          # Verify the image was created
-          echo "=== Listing images after build ==="
-          ducttape images
-          ls -la ~/.local/share/ducttape/images/
-          echo "Built image $IMAGE_TAG"
-
-      - name: Run VM from built image
-        env:
-          IMAGE_TAG: fedora-httpd
-          VM_NAME: fedora-httpd
-        run: |
-          echo "Running VM from $IMAGE_TAG..."
-          ducttape run "$IMAGE_TAG" --name "$VM_NAME"
-
-          echo "Waiting for SSH..."
-          for i in $(seq 1 30); do
-            ducttape shell "$VM_NAME" true 2>/dev/null && break
-            sleep 10
-          done
-          echo "VM ready."
-
-          echo "=== Verify httpd ==="
-          ducttape shell "$VM_NAME" sudo systemctl status httpd --no-pager 2>&1 | head -10
-
-          echo "=== Verify page ==="
-          ducttape shell "$VM_NAME" curl -s http://localhost/ 2>&1 | head -5
-
-          echo "=== Stop and clean VM ==="
-          ducttape stop "$VM_NAME"
-          ducttape rm "$VM_NAME" || true
-
-      - name: Build derived image (FROM fedora-httpd)
-        env:
-          ROOT_PASS: password
-        run: |
-          echo "=== Derived build ==="
-          ducttape build -t derived-httpd -f fedora-httpd/Machinefile.derived --root-pass "$ROOT_PASS"
-
-          echo "=== Run derived ==="
-          ducttape run derived-httpd --name test-derived
-
-          echo "=== Verify page ==="
-          for i in $(seq 1 30); do
-            ducttape shell test-derived true 2>/dev/null && break
-            sleep 5
-          done
-          ducttape shell test-derived curl -s http://localhost/ 2>&1 | head -5
-
-          echo "=== Clean derived ==="
-          ducttape stop test-derived
-          ducttape rm test-derived || true
-
+  run-compile-macadam:
+    name: debian-claude
+    uses: ./.github/workflows/reusable-action.yml
+    with:
+      runs-on: "ubuntu-latest"
+      arch: amd64
+      actionfile: "debian-claude/README.md"
+    secrets: inherit
 

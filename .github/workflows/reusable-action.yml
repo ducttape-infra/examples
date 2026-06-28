@@ -1,0 +1,81 @@
+name: test-ducttape-action
+run-name: Test action-command with ducttape builds
+
+on:
+  workflow_dispatch:
+    inputs:
+      runs-on:
+        description: "Target runner"
+        required: true
+        type: string
+        default: "ubuntu-latest"
+      arch:
+        description: "Target architecture (e.g., arm64, amd64)"
+        required: true
+        type: string
+        default: "amd64"
+      actionfile:
+        description: "Actionfile to use for the compilation"
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      runs-on:
+        description: "Target runner"
+        required: true
+        type: string
+        default: "ubuntu-latest"
+      arch:
+        description: "Target architecture (e.g., arm64, amd64)"
+        required: true
+        type: string
+        default: "amd64"
+      actionfile:
+        description: "Actionfile to use for the compilation"
+        required: true
+        type: string
+
+jobs:
+  test-ducttape-action:
+    runs-on: ${{ inputs.runs-on }}${{ inputs.arch == 'arm64' && '-arm' || '' }}
+
+    steps:
+      - name: Checkout examples
+        uses: actions/checkout@v4
+
+      - name: virtualization support
+        continue-on-error: true
+        uses: gbraad-actions/setup-virtualization@v3
+
+      - name: Install containers tools
+        continue-on-error: true
+        uses: gbraad-actions/setup-container-tools@v1
+
+      - uses: lima-vm/lima-actions/setup@v1
+        id: lima-actions-setup
+
+      - name: Setup ducttape tool from releases
+        uses: ducttape-infra/ducttape-install-action@v1.2.2
+
+      - name: Setup action tool from releases
+        uses: ducttape-infra/actionfile-install-action@v0.6
+
+      - name: Build
+        run: |
+          action ${{ inputs.actionfile }} build
+
+      #- name: Run
+      #  run: |
+      #    action ${{ inputs.actionfile }} run
+
+      - name: Run and test
+        run: |
+          action ${{ inputs.actionfile }} run
+          action ${{ inputs.actionfile }} test
+
+      - name: Clean
+        if: always()
+        run: |
+          action ${{ inputs.actionfile }} clean || true
+
+
