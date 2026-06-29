@@ -45,28 +45,24 @@ jobs:
 
       - name: virtualization support
         continue-on-error: true
-        uses: gbraad-actions/setup-virtualization@v3
+        uses: ducttape-actions/setup-virtualization@v3
 
       - name: Install containers tools
         continue-on-error: true
-        uses: gbraad-actions/setup-container-tools@v1
+        uses: ducttape-actions/setup-container-tools@v1
 
       - uses: lima-vm/lima-actions/setup@v1
         id: lima-actions-setup
 
       - name: Setup ducttape tool from releases
-        uses: ducttape-infra/ducttape-install-action@v1.2.2
+        uses: ducttape-actions/ducttape-install-action@v1.2.2
 
       - name: Setup action tool from releases
-        uses: ducttape-infra/actionfile-install-action@v0.6
+        uses: ducttape-actions/actionfile-install-action@v0.6
 
       - name: Build
         run: |
           action ${{ inputs.actionfile }} build
-
-      #- name: Run
-      #  run: |
-      #    action ${{ inputs.actionfile }} run
 
       - name: Run and test
         run: |
